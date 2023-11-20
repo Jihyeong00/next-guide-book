@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { signIn } from '@/auth';
 
 const FormSchema = z.object({
   id: z.string(),
@@ -40,7 +41,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
   if (!validatedFields.success) {
     // 에러가 있을 시에 조기 종료 해줍니다.
     return {
-      // 에러 객체들만 꺼내와 줍니다. form 과 field의 에러들만 꺼내와줍니다.
+      // 에러 객체들만 꺼내와 줍니다. form 과 field 에러들만 꺼내와줍니다.
       errors: validatedFields.error.flatten().fieldErrors,
       message: 'Missing Fields. Failed to Create Invoice.',
     };
@@ -107,12 +108,25 @@ export async function updateInvoice(
 }
 
 export async function deleteInvoice(id: string) {
-  throw new Error('Failed to Delete Invoice');
   try {
     await sql`DELETE FROM invoices WHERE id = ${id}`;
     revalidatePath('/dashboard/invoices');
     return { message: 'Deleted Invoice.' };
   } catch (error) {
     return { message: 'Database Error: Failed to Delete Invoice.' };
+  }
+}
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    await signIn('credentials', Object.fromEntries(formData));
+  } catch (error) {
+    if ((error as Error).message.includes('CredentialsSignin')) {
+      return 'CredentialsSignin';
+    }
+    throw error;
   }
 }
