@@ -1,5 +1,11 @@
 import AcmeLogo from '@/app/ui/acme-logo';
 import LoginForm from '@/app/ui/login-form';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'loginPage',
+  metadataBase: new URL('https://next-learn-dashboard.vercel.sh'),
+};
 
 export default function LoginPage() {
   return (
